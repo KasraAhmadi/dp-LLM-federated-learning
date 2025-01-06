@@ -1,11 +1,10 @@
 # Federated Instruction Tuning on General Dataset
 flower:
-    num_clients: 20 # total number of clients
-    num_rounds: 100
+    num_clients: 4 # total number of clients
+    num_rounds: 10
     fraction_fit: 0.2
     client_resources:
       num_cpus: 1
       num_gpus: 1
     dp:
-      noise_mult: 0.02
-      clip_norm: 0.5
+      clipping_norm: 3

@@ -27,6 +27,8 @@ from transformers import (
     set_seed,
 )
 from typing import Callable, Dict, Tuple
+import csv
+
 
 task_to_keys = {
     "cola": ("sentence", None),
@@ -50,6 +52,19 @@ class DataTrainingArguments:
     into argparse arguments to be able to specify them on
     the command line.
     """
+    
+    epsilon: int = field(
+        metadata={"help": "Target epsilon"},
+    )
+    
+    accountant: str = field(
+        metadata={"help": "Accountant can be moments, prv, ew"},
+    )
+    
+    
+    partition_policy: str = field(
+        metadata={"help": "Partition policy. It can be: Iid, Linear, Square, or Exp"},
+    )
 
     task_name: Optional[str] = field(
         default=None,
@@ -253,6 +268,7 @@ class HuggingFaceClient(fl.client.NumPyClient):
         for param, val in zip(state_dict.keys(), parameters):
             state_dict[param].copy_(torch.tensor(val))
         self.model.load_state_dict(state_dict)
+        
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
         def compute_metrics(p: EvalPrediction):
@@ -273,6 +289,8 @@ class HuggingFaceClient(fl.client.NumPyClient):
             data_collator=self.data_collator
         )
         eval_res = trainer.evaluate()
+        print("****")
+        print(eval_res)
         return float(eval_res["eval_loss"]), len(self.eval_dataset), {"accuracy": float(eval_res["eval_accuracy"])}
 
     def fit(self, parameters, config):
@@ -395,12 +413,12 @@ def gen_client_fn(
     return client_fn
 
 #Server
-def get_on_fit_config():
-    def fit_config_fn(server_round: int):
-        fit_config = {"current_round": server_round}
-        return fit_config
+# def get_on_fit_config():
+#     def fit_config_fn(server_round: int):
+#         fit_config = {"current_round": server_round}
+#         return fit_config
 
-    return fit_config_fn
+#     return fit_config_fn
 
 
 def fit_weighted_average(metrics):
@@ -410,11 +428,12 @@ def fit_weighted_average(metrics):
     # acuuracy = [num_examples * m["eval_accuracy"] for num_examples, m in metrics]
 
     examples = [num_examples for num_examples, _ in metrics]
-    print(metrics)
+    # print(metrics)
     # Aggregate and return custom metric (weighted average)
     return {"eval_loss": sum(losses) / sum(examples)}
 
-def get_evaluate_fn(model_args, save_every_round, total_round, save_path,training_args,eval_dataset,tokenizer,data_collator,metric):
+def get_evaluate_fn(model_args, save_every_round, total_round, save_path,training_args,eval_dataset,tokenizer,data_collator,metric,model_performance_file
+):
     """Return an evaluation function for saving global model."""
 
 
@@ -461,7 +480,12 @@ def get_evaluate_fn(model_args, save_every_round, total_round, save_path,trainin
             loss = eval_res["eval_loss"]
             accuracy = eval_res["eval_accuracy"]
             model.save_pretrained(f"{save_path}/Model_{server_round}")
-            print("FINAL IS HERE")
-            print(eval_res)
-        return float(loss), {"accuracy":accuracy}
+            row = [server_round,accuracy,eval_res]
+            with open(model_performance_file, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(row)  # Writing a new row in each iteration
+            # print("FINAL IS HERE")
+            # print(eval_res)
+        # return float(loss), {"accuracy":accuracy}
+        return 0.0, {}
     return evaluate
