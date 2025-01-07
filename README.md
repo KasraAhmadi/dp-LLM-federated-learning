@@ -14,6 +14,7 @@ To run the experiments in the paper run:
 ./script.sh
 ```
 ## Noise Calculation
+We used the project at https://github.com/star-ailab/FSRDP to find the proper noise std deviation for different accountant.
 To find the proper std deviation of noise in different accountants:
 ```
 Python ./noise_calculation/get_noise.py
