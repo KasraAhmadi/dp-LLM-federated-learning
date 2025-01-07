@@ -26,7 +26,6 @@ python federated.py \
   --max_seq_length 128 \
   --task_name SST2 \
   --partition_policy Linear \
-  --epsilon 10 \
   --per_device_train_batch_size 550 \
   --learning_rate 2e-5\
   --output_dir /tmp/SST2/
