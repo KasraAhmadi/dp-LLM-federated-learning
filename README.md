@@ -3,6 +3,10 @@
 The GLUE dataset learning process is using Transformer library and is adopted from https://github.com/nyu-mll/GLUE-baselines <br>
 The Federated learning enviroment is using Flower AI framework. https://flowerai.net/docs/framework/index.html
 
+## Install dependencies
+```
+pip install requirement.txt
+```
 ## Experiments
 To run the experiments in the paper run:
 ```
@@ -11,7 +15,7 @@ To run the experiments in the paper run:
 ## Noise Calculation
 To find the proper std deviation of noise in different accountants:
 ```
-Python3 ./noise_calculation/get_noise.py
+Python ./noise_calculation/get_noise.py
 ```
 target_epsilons and dataset_size_list is configurable in get_noise.py file.
 
